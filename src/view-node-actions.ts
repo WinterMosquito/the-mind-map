@@ -11,6 +11,7 @@ import {
 } from './images';
 import { openImageEditorModal, openLinkEditorModal } from './modals';
 import { t } from './i18n';
+import { isExternalOrProtocolUrl } from './constants';
 import type {
 	MindMapNode,
 	MindMapNodeData,
@@ -30,6 +31,12 @@ export async function addLinkToActiveNode(view: MindMapView): Promise<void> {
 		return;
 	}
 	view.mindMap?.execCommand('SET_NODE_HYPERLINK', node, result.link);
+	// URL/协议链接：仅添加超链接图标——不把 <url> 当作节点文本（尖括号内链接不渲染）。
+	// 笔记/附件（..）仍按 Obsidian 双链语义用其可见名更新节点文本。
+	if (result.link && isExternalOrProtocolUrl(result.link)) {
+		view.scheduleSave();
+		return;
+	}
 	// 与 Obsidian 双链对齐：链接的「可见文本」同步到节点文本——
 	// 仅当节点文本为空、或文本仍是旧链接的可见名（改链场景）时更新，
 	// 保留用户已有正文（正文节点只附加链接）。

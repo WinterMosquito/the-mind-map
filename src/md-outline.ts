@@ -182,7 +182,10 @@ function buildInlineData(raw: string): InlineData {
 			data.mdLinkText = tok.label || tok.target;
 			data.hyperlinkTitle = tokenDisplay(tok);
 		}
-		pieces.push(tokenDisplay(tok));
+		// autolink <url> 不占节点文本：节点仅显示超链接图标（尖括号内链接不渲染）
+		if (tok.kind !== 'autolink') {
+			pieces.push(tokenDisplay(tok));
+		}
 	}
 	pieces.push(raw.slice(cursor));
 	let text = pieces.join('').trim();

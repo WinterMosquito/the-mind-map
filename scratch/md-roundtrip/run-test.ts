@@ -166,23 +166,23 @@ const roundTrip = (md: string): { mdRaw: string; md2: string } => {
 	eq(out2, out, 'md 链接往返不动点（无双层尖括号）');
 }
 
-// 裸 autolink <url>：解析为链接；未编辑回写 <url>；往返不动点
+// 裸 autolink <url>：解析为链接；节点不渲染 URL 文本（仅图标）；未编辑回写 <url>；往返不动点
 {
 	const md = ['- <https://example.com>'].join('\n');
 	const r = parseMdOutline(md, '根');
 	eq(r.tree.children![0]!.data?.hyperlink, 'https://example.com', '解析 <url> 自动链接为超链接');
-	eq(r.tree.children![0]!.data?.text, 'https://example.com', '自动链接节点文本 = URL');
+	eq(r.tree.children![0]!.data?.text, '', '节点不渲染 URL 文本（仅图标）');
 	const out = serializeMdBody(r.tree, null);
 	assert(out.includes('<https://example.com>'), 'autolink 回写为 <url>');
 	const out2 = serializeMdBody(parseMdOutline(out, '根').tree, null);
 	eq(out2, out, 'autolink 往返不动点');
 }
 
-// 插入 URL 链接（引擎节点，无 mdRaw）：回写为 <url>
+// 插入 URL 链接（引擎节点，无 mdRaw，文本为空）：回写为 <url>（仅图标）
 {
 	const tree = parseMdOutline('# R\n', '根').tree;
 	tree.children![0]!.children!.push({
-		data: { text: 'https://example.com', hyperlink: 'https://example.com' },
+		data: { text: '', hyperlink: 'https://example.com' },
 	});
 	const out = serializeMdBody(tree, null);
 	assert(out.includes('- <https://example.com>'), '新插入的 URL 回写为 <url>');
