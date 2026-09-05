@@ -15,24 +15,39 @@ import { App } from 'obsidian';
 import { MindMapTreeNode } from '../vendor/simple-mind-map.cjs';
 import { findAttachmentFile } from './images';
 
+/** 是否为外部/协议 URL（http(s)://、obsidian://、ftp:// … 含 scheme://） */
+function isDestUrl(link: string): boolean {
+	return /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(link);
+}
+
 /** 行内 token 渲染：链接（仅合成路径使用） */
 function renderHyperlink(data: Record<string, unknown>): string | null {
 	const hyperlink = data.hyperlink;
 	if (typeof hyperlink !== 'string' || !hyperlink) {
 		return null;
 	}
+	// wiki 双链：原样保留
+	if (hyperlink.startsWith('[[')) {
+		return hyperlink;
+	}
+	const rawText = data.text;
+	const text = typeof rawText === 'string' ? rawText : '';
+	const rawLabel = data.mdLinkText;
+	const label =
+		typeof rawLabel === 'string' && rawLabel
+			? rawLabel
+			: text.split('\n')[0] || hyperlink;
+	// URL / 协议链接 → Markdown 链接，目标用尖括号包裹（CommonMark <url>）；
+	// 否则含空格/括号的 URL 会破坏 `(…)` 闭合，Obsidian 亦识别 <url>
+	if (isDestUrl(hyperlink)) {
+		return `[${label}](<${hyperlink}>)`;
+	}
 	if (data.mdLinkStyle === 'md') {
-		const rawText = data.text;
-		const text = typeof rawText === 'string' ? rawText : '';
-		const rawLabel = data.mdLinkText;
-		const label =
-			typeof rawLabel === 'string' && rawLabel
-				? rawLabel
-				: text.split('\n')[0] || hyperlink;
+		// 非 URL 的 md 链接（如相对路径）保持原样，不加尖括号
 		return `[${label}](${hyperlink})`;
 	}
-	// wiki 原样；用户改写的裸 url/路径 → 包一层 [[..]]（引擎语义一致）
-	return hyperlink.startsWith('[[') ? hyperlink : `[[${hyperlink}]]`;
+	// 其余（库内路径等非 URL）：裸目标 → 包一层 [[..]]（引擎语义一致）
+	return `[[${hyperlink}]]`;
 }
 
 /** 行内 token 渲染：图片（仅合成路径使用） */

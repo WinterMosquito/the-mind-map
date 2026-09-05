@@ -79,7 +79,13 @@ function tokenizeInline(raw: string): InlineToken[] {
 		} else {
 			// [t](url) 或 ![alt](url)
 			const label = (m[5] ?? '').trim();
-			const target = m[6] ?? '';
+			let target = m[6] ?? '';
+			// 尖括号包裹的目标（CommonMark <url>，如 [t](<https://…>)）：
+			// 剥壳存入，避免回写时对已含 <> 的目标二次包裹成 <<url>>。
+			// 仅对 md 链接处理；图片目标保持原样（见 renderImage）。
+			if (m[4] !== '!' && target.startsWith('<') && target.endsWith('>')) {
+				target = target.slice(1, -1);
+			}
 			out.push({
 				start: m.index,
 				end: m.index + m[0].length,

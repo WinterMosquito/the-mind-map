@@ -152,6 +152,41 @@ const roundTrip = (md: string): { mdRaw: string; md2: string } => {
 	assert(!mdRaw.includes('[[') || hasNode(r.tree, (d) => typeof d.hyperlink === 'string'), 'wikilink 有 hyperlink 承载');
 }
 
+// URL 链接：解析 <url> 剥壳；未编辑来回写原文；插入/合成时目标用尖括号包裹
+{
+	const md = ['- [文本](<https://example.com>)'].join('\n');
+	const r = parseMdOutline(md, '根');
+	const li = r.tree.children![0]!;
+	eq(li.data?.hyperlink, 'https://example.com', '解析时剥去 <url> 外层尖括号');
+	eq(li.data?.mdLinkStyle, 'md', 'md 链接样式');
+	eq(li.data?.text, '文本', '可见文本为标签');
+	const out = serializeMdBody(r.tree, null);
+	assert(out.includes('[文本](<https://example.com>)'), 'URL 目标用尖括号包裹');
+	// 不动点：不二次包裹
+	const out2 = serializeMdBody(parseMdOutline(out, '根').tree, null);
+	eq(out2, out, 'URL 链接往返不动点（无双层尖括号）');
+}
+
+// 插入 URL 链接（引擎节点，无 mdRaw）：合成回写为 [url](<url>)
+{
+	const tree = parseMdOutline('# R\n', '根').tree;
+	tree.children![0]!.children!.push({
+		data: { text: 'https://example.com', hyperlink: 'https://example.com' },
+	});
+	const out = serializeMdBody(tree, null);
+	assert(out.includes('[https://example.com](<https://example.com>)'), '新插入的 URL 用尖括号包裹写出');
+	assert(!out.includes('<<'), '无双层尖括号');
+}
+
+// 非 URL 的 md 链接（相对路径）不加尖括号
+{
+	const md = ['- [笔记](folder/note.md)'].join('\n');
+	const r = parseMdOutline(md, '根');
+	eq(r.tree.children![0]!.data?.hyperlink, 'folder/note.md', '相对路径非 URL');
+	const out = serializeMdBody(r.tree, null);
+	assert(out.includes('[笔记](folder/note.md)'), '非 URL 的 md 链接不加尖括号');
+}
+
 // 段落（plain）行内 [[..]] / [](url) / 轻标记：未编辑整段逐字回写
 {
 	const md = ['# H', '', '参见 [[设计稿|设计]] 与 [仓库](https://example.com) 说明', '', '另段含 **粗体** 与 [[普通链接]]。'].join('\n');
