@@ -25,3 +25,4 @@ data.json
 scratch/*
 !scratch/md-roundtrip/
 !scratch/md-roundtrip/**
+scratch/md-roundtrip/*.cjs

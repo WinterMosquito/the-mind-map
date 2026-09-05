@@ -45,7 +45,7 @@ The full Markdown ↔ mind-map mapping rules are in [`docs/markdown-mindmap-stan
 ## 📦 Install
 
 - **Community plugins** (once listed): Settings → Community plugins → search *The Mind Map*.
-- **From GitHub Releases (recommended)**: download the latest release assets (`main.js`, `manifest.json`, `styles.css`) from the repo [Releases](https://github.com/WinterMosquito/The-Mind-Map/releases) page, then copy them into `<vault>/.obsidian/plugins/mindmap/` and enable in Settings → Community plugins.
+- **From GitHub Releases (recommended)**: download the latest release assets (`main.js`, `manifest.json`, `styles.css`) from the repo [Releases](https://github.com/WinterMosquito/The-Mind-Map/releases) page, then copy them into `<vault>/.obsidian/plugins/the-mind-map/` and enable in Settings → Community plugins.
 - **Build from source**: `npm install && npm run build` produces `main.js`; copy it together with `manifest.json` and `styles.css` into the plugin folder.
 
 > Requires Obsidian 1.13.0+, desktop (Electron). Config is stored locally (plugin `data.json`); no telemetry. `main.js` is built in CI and attached to each GitHub Release (it is not committed to the repo).

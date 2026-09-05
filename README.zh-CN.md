@@ -45,7 +45,7 @@
 ## 📦 安装
 
 - **社区插件**（上架后）：设置 → 第三方插件 → 搜索 *The Mind Map*。
-- **从 GitHub Release 安装（推荐）**：从仓库 [Releases](https://github.com/WinterMosquito/The-Mind-Map/releases) 页面下载最新版本的附件（`main.js`、`manifest.json`、`styles.css`），复制到 `<库>/.obsidian/plugins/mindmap/`，再到「设置 → 第三方插件」启用。
+- **从 GitHub Release 安装（推荐）**：从仓库 [Releases](https://github.com/WinterMosquito/The-Mind-Map/releases) 页面下载最新版本的附件（`main.js`、`manifest.json`、`styles.css`），复制到 `<库>/.obsidian/plugins/the-mind-map/`，再到「设置 → 第三方插件」启用。
 - **从源码构建**：`npm install && npm run build` 生成 `main.js`，与 `manifest.json`、`styles.css` 一起放入插件目录。
 
 > 需要 Obsidian 1.13.0+，桌面端（Electron）。配置仅存本地（插件 `data.json`），无遥测。`main.js` 由 CI 构建并随每个 GitHub Release 发布（不提交进仓库）。

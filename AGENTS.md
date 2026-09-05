@@ -6,7 +6,7 @@
 - 定位：**Markdown 渲染层**——`.mindmap.md` 是 100% 标准 Markdown（frontmatter + 标题 + 列表），插件解析为思维导图、编辑后无损回写为 Markdown；无任何专有格式。
 - 入口：`src/main.ts`，编译为 `main.js`，由 Obsidian 加载。
 - 发布产物：`main.js`、`manifest.json`、`styles.css`。
-- 插件标识：`id: mindmap`（安装目录 `<vault>/.obsidian/plugins/mindmap/`）。
+- 插件标识：`id: the-mind-map`（安装目录 `<vault>/.obsidian/plugins/the-mind-map/`）。
 - 引擎：`simple-mind-map 0.14.0-fix.3`，以压缩产物 vendor 于 `vendor/simple-mind-map.cjs`（附手写类型声明 `vendor/simple-mind-map.d.cts`）。引擎 CSS vendor 于 `vendor/simple-mind-map.css`，已合并进根目录 `styles.css`。
 
 ## 环境与工具
@@ -39,7 +39,7 @@ npm run build
 将 `main.js`、`manifest.json`、`styles.css` 复制到：
 
 ```
-<Vault>/.obsidian/plugins/mindmap/
+<Vault>/.obsidian/plugins/the-mind-map/
 ```
 
 重载 Obsidian，在「设置 → 第三方插件」启用。
