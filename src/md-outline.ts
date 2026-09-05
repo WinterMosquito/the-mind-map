@@ -58,7 +58,7 @@ interface InlineToken {
 }
 
 const INLINE_RE =
-	/(!?)\[\[([^\]|\n]+)(?:\|([^\]]*))?\]\]|(!?)\[([^\]]*)\]\(([^)\s\n]+)\)|(<((?:[a-zA-Z][a-zA-Z0-9+.-]*:\/\/)[^>\s]+)>)/g;
+	/(!?)\[\[([^\]|\n]+)(?:\|([^\]]*))?\]\]|(!?)\[([^\]]*)\]\((<[^>\n]*>|[^)\s\n]+)\)|(<((?:[a-zA-Z][a-zA-Z0-9+.-]*:\/\/)[^>\s]+)>)/g;
 
 function tokenizeInline(raw: string): InlineToken[] {
 	const out: InlineToken[] = [];

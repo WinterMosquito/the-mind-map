@@ -20,6 +20,11 @@ function isDestUrl(link: string): boolean {
 	return /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(link);
 }
 
+/** 链接目标是否需要尖括号包裹（含空格/括号/<>/\，否则会破坏 `(…)` 闭合） */
+function needsDestBraces(dest: string): boolean {
+	return /[\s()<>\\]/.test(dest);
+}
+
 /** 行内 token 渲染：链接（仅合成路径使用） */
 function renderHyperlink(data: Record<string, unknown>): string | null {
 	const hyperlink = data.hyperlink;
@@ -43,8 +48,10 @@ function renderHyperlink(data: Record<string, unknown>): string | null {
 		return `<${hyperlink}>`;
 	}
 	if (data.mdLinkStyle === 'md') {
-		// 非 URL 的 md 链接（如相对路径）保持原样，不加尖括号
-		return `[${label}](${hyperlink})`;
+		// 非 URL 的 md 链接（如相对路径）：目标含空格/括号等时用尖括号包裹，
+		// 避免破坏 `(…)` 闭合（Obsidian 亦识别 <dest>）
+		const dest = needsDestBraces(hyperlink) ? `<${hyperlink}>` : hyperlink;
+		return `[${label}](${dest})`;
 	}
 	// 其余（库内路径等非 URL）：裸目标 → 包一层 [[..]]（引擎语义一致）
 	return `[[${hyperlink}]]`;

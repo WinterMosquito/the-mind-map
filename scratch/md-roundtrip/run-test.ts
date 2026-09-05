@@ -198,6 +198,35 @@ const roundTrip = (md: string): { mdRaw: string; md2: string } => {
 	assert(out.includes('[笔记](folder/note.md)'), '非 URL 的 md 链接不加尖括号');
 }
 
+// 目标含空格/括号（回写启发式增强 ①）：尖括号内可含空格/括号；合成时用尖括号包裹
+{
+	// 解析 [..](<目标含空格>) → 目标带空格
+	const md = ['- [笔记](<folder/my note.md>)'].join('\n');
+	const r = parseMdOutline(md, '根');
+	eq(r.tree.children![0]!.data?.hyperlink, 'folder/my note.md', '解析 <目标含空格>（尖括号内可含空格）');
+	eq(r.tree.children![0]!.data?.text, '笔记', '标签为节点文本');
+	const out = serializeMdBody(r.tree, null);
+	assert(out.includes('[笔记](<folder/my note.md>)'), '含空格目标未编辑按原文回写');
+
+	// 合成（无 mdRaw）含空格目标 → 尖括号包裹
+	const t1 = parseMdOutline('# R\n', '根').tree;
+	t1.children![0]!.children!.push({
+		data: { text: '笔记', hyperlink: 'folder/my note.md', mdLinkStyle: 'md', mdLinkText: '笔记' },
+	});
+	const o1 = serializeMdBody(t1, null);
+	assert(o1.includes('[笔记](<folder/my note.md>)'), '合成：含空格目标用尖括号包裹');
+
+	// 合成（无 mdRaw）含括号目标 → 尖括号包裹；且可解析回
+	const t2 = parseMdOutline('# R\n', '根').tree;
+	t2.children![0]!.children!.push({
+		data: { text: '笔记', hyperlink: 'folder/a(b).md', mdLinkStyle: 'md', mdLinkText: '笔记' },
+	});
+	const o2 = serializeMdBody(t2, null);
+	assert(o2.includes('[笔记](<folder/a(b).md>)'), '合成：含括号目标用尖括号包裹');
+	const rp = parseMdOutline(o2, '根');
+	eq(rp.tree.children![0]!.children![0]!.data?.hyperlink, 'folder/a(b).md', '合成后的含括号目标可解析回');
+}
+
 // 段落（plain）行内 [[..]] / [](url) / 轻标记：未编辑整段逐字回写
 {
 	const md = ['# H', '', '参见 [[设计稿|设计]] 与 [仓库](https://example.com) 说明', '', '另段含 **粗体** 与 [[普通链接]]。'].join('\n');

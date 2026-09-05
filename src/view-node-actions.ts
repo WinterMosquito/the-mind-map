@@ -32,8 +32,15 @@ export async function addLinkToActiveNode(view: MindMapView): Promise<void> {
 	}
 	view.mindMap?.execCommand('SET_NODE_HYPERLINK', node, result.link);
 	// URL/协议链接：仅添加超链接图标——不把 <url> 当作节点文本（尖括号内链接不渲染）。
-	// 笔记/附件（..）仍按 Obsidian 双链语义用其可见名更新节点文本。
 	if (result.link && isExternalOrProtocolUrl(result.link)) {
+		// 保持「仅图标」：若节点文本仍是旧 URL 显示名（历史/旧行为残留），清空，
+		// 避免节点内残留一个过期的 URL 文本。
+		if (current) {
+			const text = (node.getData?.('text') as string | undefined) ?? '';
+			if (text.trim() !== '' && text.trim() === displayFromHyperlink(current)) {
+				applyNodeText(view, node, '');
+			}
+		}
 		view.scheduleSave();
 		return;
 	}
