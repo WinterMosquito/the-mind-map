@@ -37,10 +37,10 @@ function renderHyperlink(data: Record<string, unknown>): string | null {
 		typeof rawLabel === 'string' && rawLabel
 			? rawLabel
 			: text.split('\n')[0] || hyperlink;
-	// URL / 协议链接 → Markdown 链接，目标用尖括号包裹（CommonMark <url>）；
-	// 否则含空格/括号的 URL 会破坏 `(…)` 闭合，Obsidian 亦识别 <url>
+	// URL / 协议链接 → 直接写为标准 autolink <url>（Obsidian 识别为可点链接，
+	// 含空格/括号的 URL 也安全；无需 [label](<url>)）
 	if (isDestUrl(hyperlink)) {
-		return `[${label}](<${hyperlink}>)`;
+		return `<${hyperlink}>`;
 	}
 	if (data.mdLinkStyle === 'md') {
 		// 非 URL 的 md 链接（如相对路径）保持原样，不加尖括号

@@ -45,7 +45,7 @@ interface ParsedLine {
 // 行内 token（wikilink / markdown 链接 / 图片）
 // ---------------------------------------------------------------------------
 
-type InlineTokenKind = 'wikiImg' | 'wiki' | 'mdImg' | 'mdLink';
+type InlineTokenKind = 'wikiImg' | 'wiki' | 'mdImg' | 'mdLink' | 'autolink';
 
 interface InlineToken {
 	start: number;
@@ -58,7 +58,7 @@ interface InlineToken {
 }
 
 const INLINE_RE =
-	/(!?)\[\[([^\]|\n]+)(?:\|([^\]]*))?\]\]|(!?)\[([^\]]*)\]\(([^)\s\n]+)\)/g;
+	/(!?)\[\[([^\]|\n]+)(?:\|([^\]]*))?\]\]|(!?)\[([^\]]*)\]\(([^)\s\n]+)\)|(<((?:[a-zA-Z][a-zA-Z0-9+.-]*:\/\/)[^>\s]+)>)/g;
 
 function tokenizeInline(raw: string): InlineToken[] {
 	const out: InlineToken[] = [];
@@ -75,6 +75,15 @@ function tokenizeInline(raw: string): InlineToken[] {
 				kind: m[1] === '!' ? 'wikiImg' : 'wiki',
 				target,
 				label,
+			});
+		} else if (m[7] !== undefined) {
+			// autolink <url>（如 <https://…>）
+			out.push({
+				start: m.index,
+				end: m.index + m[0].length,
+				kind: 'autolink',
+				target: m[8] ?? '',
+				label: '',
 			});
 		} else {
 			// [t](url) 或 ![alt](url)
@@ -102,6 +111,9 @@ function tokenizeInline(raw: string): InlineToken[] {
 function tokenDisplay(tok: InlineToken): string {
 	if (tok.label) {
 		return tok.label;
+	}
+	if (tok.kind === 'autolink') {
+		return tok.target;
 	}
 	const name = tok.target.split('/').pop() ?? tok.target;
 	// wiki 链接目标：仅去 .md（笔记显示名，Obsidian 语义）；附件/其它保留扩展；
@@ -153,6 +165,15 @@ function buildInlineData(raw: string): InlineData {
 				data.mdLinkStyle = 'wiki';
 				// 引擎链接图标原生 title（悬停提示目标名，提示可点）
 				data.hyperlinkTitle = tokenDisplay(tok);
+			}
+		} else if (tok.kind === 'autolink') {
+			// <url> 自动链接 → 与 md 链接同语义（回写为 <url>）
+			if (!firstLink) {
+				firstLink = true;
+				data.hyperlink = tok.target;
+				data.mdLinkStyle = 'md';
+				data.mdLinkText = tok.target;
+				data.hyperlinkTitle = tok.target;
 			}
 		} else if (!firstLink) {
 			firstLink = true;

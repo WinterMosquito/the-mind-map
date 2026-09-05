@@ -152,29 +152,40 @@ const roundTrip = (md: string): { mdRaw: string; md2: string } => {
 	assert(!mdRaw.includes('[[') || hasNode(r.tree, (d) => typeof d.hyperlink === 'string'), 'wikilink 有 hyperlink 承载');
 }
 
-// URL 链接：解析 <url> 剥壳；未编辑来回写原文；插入/合成时目标用尖括号包裹
+// URL 链接：解析 [t](<url>) 剥壳；未编辑回写保留原样
 {
 	const md = ['- [文本](<https://example.com>)'].join('\n');
 	const r = parseMdOutline(md, '根');
 	const li = r.tree.children![0]!;
-	eq(li.data?.hyperlink, 'https://example.com', '解析时剥去 <url> 外层尖括号');
+	eq(li.data?.hyperlink, 'https://example.com', '解析时剥去 [..](<url>) 的外层尖括号');
 	eq(li.data?.mdLinkStyle, 'md', 'md 链接样式');
 	eq(li.data?.text, '文本', '可见文本为标签');
 	const out = serializeMdBody(r.tree, null);
-	assert(out.includes('[文本](<https://example.com>)'), 'URL 目标用尖括号包裹');
-	// 不动点：不二次包裹
+	assert(out.includes('[文本](<https://example.com>)'), '未编辑的 md 链接按原文回写');
 	const out2 = serializeMdBody(parseMdOutline(out, '根').tree, null);
-	eq(out2, out, 'URL 链接往返不动点（无双层尖括号）');
+	eq(out2, out, 'md 链接往返不动点（无双层尖括号）');
 }
 
-// 插入 URL 链接（引擎节点，无 mdRaw）：合成回写为 [url](<url>)
+// 裸 autolink <url>：解析为链接；未编辑回写 <url>；往返不动点
+{
+	const md = ['- <https://example.com>'].join('\n');
+	const r = parseMdOutline(md, '根');
+	eq(r.tree.children![0]!.data?.hyperlink, 'https://example.com', '解析 <url> 自动链接为超链接');
+	eq(r.tree.children![0]!.data?.text, 'https://example.com', '自动链接节点文本 = URL');
+	const out = serializeMdBody(r.tree, null);
+	assert(out.includes('<https://example.com>'), 'autolink 回写为 <url>');
+	const out2 = serializeMdBody(parseMdOutline(out, '根').tree, null);
+	eq(out2, out, 'autolink 往返不动点');
+}
+
+// 插入 URL 链接（引擎节点，无 mdRaw）：回写为 <url>
 {
 	const tree = parseMdOutline('# R\n', '根').tree;
 	tree.children![0]!.children!.push({
 		data: { text: 'https://example.com', hyperlink: 'https://example.com' },
 	});
 	const out = serializeMdBody(tree, null);
-	assert(out.includes('[https://example.com](<https://example.com>)'), '新插入的 URL 用尖括号包裹写出');
+	assert(out.includes('- <https://example.com>'), '新插入的 URL 回写为 <url>');
 	assert(!out.includes('<<'), '无双层尖括号');
 }
 
